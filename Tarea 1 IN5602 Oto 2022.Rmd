@@ -1,0 +1,195 @@
+---
+title:  "Tarea 1 - IN5602, Semestre Otoño 2022"
+author: Nombre 1, Nombre 2, Nombre 3.
+date:   "`r format(Sys.time(), '%d %B, %Y')`"
+
+output:
+  html_document:
+    df_print: paged
+    theme: simplex
+    highlight: tango
+    toc: no
+encoding: UTF-8
+---
+
+<!-- 
+Author  	  : Marcel Goic, Nicolás Acevedo, Valentina Leiva
+Description	: Comparación de precios de Abarrotes
+						- v.0.0 (14/Abr/2022). First Version
+Notes       : 
+-->
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+<p align="right"><b>Curso:</b> Marketing II, Marcel Goic</p>
+<p align="right"><b>Auxiliares:</b> G. Mora, G. Muñoz, N. Acevedo, V. Leiva, C. Pulgar, P. Ortiz</p>
+
+# {.tabset}
+
+## Enunciado
+
+El costo de la vida es un tema de preocupación central para los ciudadanos de todo el
+mundo. En Chile, existe una percepción transversal de que el país es particularmente caro. Por ejemplo, periódicos de circulación nacional han dedicado columnas a describir el [costo de la vida en Chile](https://www.latercera.com/opinion/noticia/chile-tan-caro-vivir/618705/). Más aún, otros medios han indicado que el alto costo de la vida en Chile podría haber sido un antecedente importante en el [estallido social en Chile](https://www.biobiochile.cl/noticias/nacional/chile/2019/10/25/el-costo-de-la-vida-en-chile-una-de-las-chispas-del-estallido-social.shtml). El tema ciertamente es de alto envolvimiento para todos los ciudadanos y en redes sociales hemos visto interesantes
+[discusiones ciudadanas](https://twitter.com/sotojuanjo/status/1389352915958214662) que incluso proveen evidencia anecdótica indicando que Chile efectivamente podría resultar más caro que otro países de mayor poder adquisitivo como Inglaterra, Alemania, España y Estados Unidos. 
+
+El estudio del costo de la vida es importante para una serie de politicas públicas y es materia de estudio de varias organizaciones a lo largo del mundo. En general, estos estudios miran los precios de conjuntos amplios de productos y suelen corregir por el nivel de ingresos. Los resultandos en general indican que Chile estaría por sobre la media mundial en niveles de precios, pero está aún alejado de los países más caros del mundo. Por ejemplo:
+
+* De acuerdo a [Our World in Data](https://ourworldindata.org/food-prices#share-of-expenditure-on-food), los chilenos gastan entre un 15% y un 20% de sus ingresos en alimentos, cifras similares a las de Brasil, Colombia y SudÁfrica. 
+* De acuerdo a [The Global Economy](https://www.theglobaleconomy.com/rankings/food_price_index_wb/#Chile), en una lista de 167 países, Chile se posiciona en el lugar 45 más caro, por sobre UK y España, pero muy por debajo de Israel, Canadá o Australia. 
+* De acuerdo a [Numbeo](https://www.numbeo.com/food-prices/), Chile aparece en el lugar 68 en el precio del [arroz](https://www.numbeo.com/cost-of-living/country_price_rankings?itemId=115), en el lugar 59 en el precio de los [tomates](https://www.numbeo.com/cost-of-living/country_price_rankings?itemId=116) y en el lugar 55 en el precio de la [cerveza](https://www.numbeo.com/cost-of-living/country_price_rankings?itemId=15).
+
+Así, la idea de que el costo de la vida es extremadamente cara en Chile no parece tan claramente sustentada con la posición más bien moderada que alcanza el país en estos
+indicadores del costo de la vida. 
+
+El objetivo de este estudio es analizar el costo de abarrotes para una muestra precios de productos y así entender con mayor profundidad cómo se comparan la distribución de precios entre países. El análisis detallado de muchos precios abre la puerta para entender cómo los distintos niveles de precios a las que se enfrentan los consumidores de distintos países difieren más allá de las simples medias muestrales. 
+
+Para hacer el análisis, se construyó una base de datos con más de 13.000 precios de 28 tipos de productos, para 7 países distintos. Esta base es de construcción reciente y no ha sido explorada profusamente aún. El set de datos, junto con una breve documentación de las columnas regitradas, se encuentra disponible en [Supermarket Prices](https://github.com/FelipeCB2995/Supermarkets_Prices). Adicionalmente, si quisiera controlar por características de los países incluidos en la muestra, puede consultar bases de datos públicas internacionales como https://data.worldbank.org/country/, que registra la población, el ingreso medio del país, los aranceles de importación, entre otras caracteristicas.  
+
+#### **Reglas del juego** 
+
+- Las tareas buscan replicar parcialmente las labores a las que se enfrentarían en el análisis de datos para el apoyo en la toma de decisiones, ya sea para una organización o para la definición de políticas. Por esto, se han propuesto preguntas relativamente abiertas que requieren que ustedes discutan y decidan cuál es el mejor enfoque de solución. Les pedimos que se involucren tempranamente en el desarrollo de la tarea para tener una discusión enriquecedora.
+
+- Todas las dudas, comentarios y errores publicarlos exclusivamente en el foro de u-cursos o, preferentemente, en nuestro flamante canal [ment.io](https://app.ment.io/). De esta forma todos se benefician de las respuestas ofrecidas.
+
+- Consideramos que es muy importante que logren escribir un informe conciso con una redacción acorde de un informe técnico profesional. La presentación y comunicación de resultados es parte integral de la tarea y, por tanto, será evaluada cuidadosamente.
+
+- La tarea se desarrolla en grupos de máximo 3 integrantes. No hay excepciones. El entregable principal es un único markdown separado en tabs (a través de la opción .tabset). En el primer tab incluya todo el desarrollo de la tarea adecuadamente comentado. El segundo tab incluya el resumen de sus resultados de acuerdo a lo pedido en la pregunta 6. Este segundo tab es el que usarán en caso de que les corresponda presentar sus resultados. Considere también un tab con todos los procedimientos preliminares y otro para los anexos dónde puede incluir cualquier resultado complementario. 
+
+- Para entregar sus resultados suba, vía u-cursos, un único archivo comprimido llamado t1-A1-A2-A3.zip, donde A1, A2 y A3 es el primer apellido de los integrantes del grupo. Incluya también los nombres de los integrantes en el documento mismo. Incluya en el zip tanto el archivo .html de salida del markdown como los códigos fuentes que permitan reproducir sus resultados.
+
+- Para la pregunta 6 consideramos que 4 figuras son suficientes para resumir los aprendizajes más relevantes, pero si están convencidos de que agregar una figura adicional es absolutamente necesaria, ¡Adelante!
+
+- La fecha de entrega de la tarea es el día 4 de mayo a las 9 a.m., sin excepciones y no habrá plazo extra para la entrega. Si por algún motivo de fuerza mayor se ve imposibilitado de entregar la tarea en el plazo estipulado, deberá escribir directamente al profesor explicando su situación. El profesor decidirá el curso de acción de acuerdo a los méritos del caso. Como siempre, es mejor dar cuenta de cualquier problema con la mayor anticipación posible. 
+
+- Recuerde que tenemos contempladas dos sesiones de presentaciones de las tareas. La primera sesión, a realizarse el día <span style="color: navy">28 de abril</span>, está destinada a que compartan sus avances y podamos identificar de manera conjunta cuáles podrían ser dificultades técnicas que requieran orientación adicional. La segunda sesión, a realizarse el día <span style="color: navy">5 de mayo</span>, está destinada para que expongan los resultados más relevantes de su trabajo y resuman sus principales aprendizajes, para que tanto los compañeros como el equipo docente puedan proveer retroalimentación. Todos los grupos deben estar disponibles para presentar en ambas ocasiones, pero si hay grupos voluntarios se les dará preferencia. Las presentaciones tendrán una duración máxima de 10 minutos y no es necesario que preparen material adicional. Esperamos que la salida del markdown sea lo suficientemente explicativa para comunicar sus resultados. La participación en estas sesiones de dsicusión es obligatoria y la inasistencia injustificada será sancionada con hasta el 50% de la nota máxima alcanzable. 
+
+- El equipo docente considera que la copia de tareas atenta en contra de tu aprendizaje y por tanto aplicará todas las medidas que estén a su disposición para desincentivar esta mala práctica.
+
+## Preliminares
+
+Escriba acá todos los comandos que necesita ejecutar antes de abordar las preguntas de la tarea (carga de librerías, lectura de datos, limpieza de la data, transformación de variables y todo lo que necesite).
+
+#### Preparación Tarea
+
+```{r P}
+library(readxl)
+library(dplyr) #para manipular dataframe
+library(readxl)
+library(ggplot2)
+library(stargazer)
+#help("dplyr-package")
+df <- read_excel("C:/Users/HP14/Desktop/tarea marketing 2/Canasta_de_productos.xlsx")
+#summary.data.frame(df)
+#pasar a variables categoricas las columnas
+ano<-as.factor(df$Ano)
+mes<-as.factor(df$Mes)
+categoria <- as.factor(df$Categoria)
+subcategoria <-as.factor(df$'Sub-categoria')
+producto <- as.factor(df$Producto)
+pais <-as.factor(df$Pais)
+cadena <- as.factor(df$Cadena)
+marca <- as.factor(df$Marca)
+marcapropia <- as.factor(df$Marca_propia)
+promocion <- as.factor(df$Promocion)
+#Agregarlas al dataframe y quitar las anteriores
+precio <-mutate(df,Ano=NULL,Mes=NULL, Categoria=NULL, 'Sub-categoria'=NULL,Producto=NULL,Pais=NULL,Cadena=NULL,Marca_propia=NULL,Promocion=NULL,ano,mes,categoria,subcategoria,producto,pais,cadena,marca,marcapropia,promocion)
+#summary(precio$subcategoria)
+
+
+summary(precio$pais)
+```
+```{r}
+#pasando a clp
+#datos extraidos de https://cuex.com/es/clp-pen el 27 de de abril de 2022
+argentina<-(precio[precio$pais=='Argentina',]$Precio_Normal)*7.35 
+chile<-(precio[precio$pais=='Chile',]$Precio_Normal)*1
+colombia<-(precio[precio$pais=='Colombia',]$Precio_Normal)*0.21
+españa<-(precio[precio$pais=='España',]$Precio_Normal)*892.47
+peru<-(precio[precio$pais=='Perú',]$Precio_Normal)*221.21
+portugal<-(precio[precio$pais=='Portugal',]$Precio_Normal)*892.47
+uk<-(precio[precio$pais=='UK',]$Precio_Normal)*1060.6
+clp<- c(argentina,chile,colombia,españa,peru,portugal,uk)
+clp<-data.frame(clp)
+#ordenar alfabeticamente nuestro dataframe para poder juntar nuestras columnas
+precio_alfabetico = precio[order(precio$pais),]
+#pegar columnas
+precios<-mutate(precio_alfabetico,clp)
+
+```
+```{r}
+
+```
+
+## Desarrollo
+
+Documente acá el desarrollo de su tarea por pregunta.
+
+#### Pregunta 1
+
+(0 puntos) Explore los datos para entender la distribución del precio de los abarrotes y ver qué variables podrían ayudar a explicar posibles diferencias en el nivel de precios entre países.
+
+```{r P1}
+#Exploración de datos
+```
+
+#### Pregunta 2
+
+Usando los aprendizajes derivados de la exploración de datos, utilice un enfoque de regresión lineal para examinar cuantitativamente qué factores determinan los distintos niveles de precios que pueden haber. En particular, considere que nos interesa comparar niveles de precios entre países. 
+     
+a. (1.0 puntos) Proponga al menos dos especificaciones alternativas para el objetivo propuesto. Justifique muy brevemente por qué las variables que está incluyendo en el modelo tienen sentido desde el punto de vista del problema. Justifique además el nivel de agregación escogido y los índices considerados en el modelo.
+
+```{r P2_a}
+#lm models
+
+```
+
+b. (1.0 puntos) Sobre los dos modelos planteados en la parte anterior, aplique un método de selección automática de variables y compare respecto a los resultados anteriores.
+```{r P2_b}
+#automatic variable selection
+```
+
+#### Pregunta 3
+
+(1.0 puntos) Use al menos dos de los modelos de aprendizaje de máquinas que vimos en clases (MARS, kNN, regression tree, random forest) para generar un pronóstico de precios para un país y produto dado y compare la capacidad de estos modelos con respecto a los de regresión lineal.
+
+```{r P3}
+#Machine learning models
+```
+
+#### Pregunta 4
+
+(0.5 puntos) Compare las fortalezas y debilidades de todos los modelos anteriores. Evalúe de acuerdo a algunas de las métricas que vimos en clases y discuta qué modelo recomendaría usar.
+
+```{r P4}
+#model evaluation
+```
+
+#### Pregunta 5
+
+En esta parte, se analizará la proporción de precios mayores que hay en Chile en comparación a cada uno de los otros países. Para lo siguiente, usted deberá clasificar cada precio de abarrotes de acuerdo a si el precio en Chile es mayor o no:
+
+a. (1.0 puntos) Estimar un modelo de decisión homogéneo para cada país distinto a Chile y comparar los resultados de cada país con respecto a Chile. Discutir brevemente los resultados y cómo testearía si las diferencias de precios entre países es significativa. 
+
+```{r P5a}
+#Homogeneous Choice
+```
+
+b.	(1.0 puntos) Estimar un modelo de decisión heterogéneo para cada país distinto a Chile y comparar los resultados con respecto a Chile. Discutir brevemente los resultados. 
+```{r P5b}
+#Heterogeneous Choice
+```
+
+## Resumen
+
+(0.5 puntos) Resuma sus aprendizajes principales en un máximo de 4 tablas o figuras. Redacte de manera concisa sus resultados tal como los reportaría a un directorio de tomador de decisiones. Agregue cualquier conclusión o idea que le parezca relevante de comunicar.
+
+```{r P6}
+#Summary
+```
+
+## Anexos
+
+Documenta acá cualquier otro adicional que consideres útil tener de referencia. 
+
