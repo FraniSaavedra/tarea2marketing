@@ -101,11 +101,15 @@ precios <-mutate(df,Ano=NULL,Mes=NULL, Categoria=NULL, 'Sub-categoria'=NULL,Prod
 summary(precio$pais)
 ```
 ```{r}
+#creamos un columna vacia que sera los precios en clp
 clp<- c(1:13966)
+#la pegamos al dataframe precios
 precios<-mutate(precios,clp)
+#pasamos a numerico clp
 precios$clp <-as.numeric(clp)
 #Vamos a convertir a peso chileno. 10 es la columna del país y 15 corresponde a
 #precios en clp
+# datos extraidos  de https://cuex.com/es/clp-pen el 27 de abril de 2022
 for (x in 1:nrow(precios)) {
   if (precios[x,10] == "Argentina") {
         precios[x,15]= precios[x,3]*7.35
@@ -127,14 +131,8 @@ for (x in 1:nrow(precios)) {
   }
 }
 ```
-```{r}
-
-
-```
 
 ```{r}
-
-
 
 
 ```
@@ -174,6 +172,7 @@ b. (1.0 puntos) Sobre los dos modelos planteados en la parte anterior, aplique u
 
 ```{r P3}
 #Machine learning models
+
 ```
 
 #### Pregunta 4
