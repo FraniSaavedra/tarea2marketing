@@ -79,64 +79,86 @@ library(dplyr) #para manipular dataframe
 library(readxl)
 library(ggplot2)
 library(stargazer)
-#help("dplyr-package")
+
+rm(list=ls())         
+graphics.off()        
+options(digits = 5)   
+
+
+#setwd("~/Documents/MKT")
+#df <- read_excel("Canasta_de_productos.xlsx")
 df <- read_excel("C:/Users/HP14/Desktop/tarea marketing 2/Canasta_de_productos.xlsx")
+
+str(df)
+count(unique(df[c("Sub-categoria")])) #87 subcategorias
+count(unique(df[c('Marca')]))
+unique(df[c('Categoria')])
 #summary.data.frame(df)
 #pasar a variables categoricas las columnas
+
+#mes<-as.factor(df$Mes)
+#categoria <- as.factor(df$Categoria)
+#subcategoria <-as.factor(df$'Sub-categoria')
+#producto <- as.factor(df$Producto)
+#pais <-as.factor(df$Pais)
+#cadena <- as.factor(df$Cadena)
+#marca <- as.factor(df$Marca)
+#marcapropia <- as.factor(df$Marca_propia)
 ano<-as.factor(df$Ano)
-mes<-as.factor(df$Mes)
-categoria <- as.factor(df$Categoria)
-subcategoria <-as.factor(df$'Sub-categoria')
-producto <- as.factor(df$Producto)
-pais <-as.factor(df$Pais)
-cadena <- as.factor(df$Cadena)
-marca <- as.factor(df$Marca)
-marcapropia <- as.factor(df$Marca_propia)
 promocion <- as.factor(df$Promocion)
+names(df)[names(df) == 'Mes'] <- 'mes'
+names(df)[names(df) == 'Categoria'] <- 'categoria'
+names(df)[names(df) == 'Sub-categoria'] <- 'subcategoria'
+names(df)[names(df) == 'Pais'] <- 'pais'
+names(df)[names(df) == 'Cadena'] <- 'cadena'
+names(df)[names(df) == 'Marca'] <- 'marca'
+names(df)[names(df) == 'Marca_propia'] <- 'marcapropia'
+
 #Agregarlas al dataframe y quitar las anteriores
-precios <-mutate(df,Ano=NULL,Mes=NULL, Categoria=NULL, 'Sub-categoria'=NULL,Producto=NULL,Pais=NULL,Cadena=NULL,Marca_propia=NULL,Promocion=NULL,ano,mes,categoria,subcategoria,producto,pais,cadena,marca,marcapropia,promocion)
-#summary(precio$subcategoria)
+#df <-mutate(df,Ano=NULL,Mes=NULL, Categoria=NULL, 'Sub-categoria'=NULL,Producto=NULL,Pais=NULL,Cadena=NULL,Marca_propia=NULL,Promocion=NULL,ano,mes,categoria,subcategoria,producto,pais,cadena,marca,marcapropia,promocion)
 
 
-summary(precio$pais)
+
+summary(df$pais)
 ```
 ```{r}
-#creamos un columna vacia que sera los precios en clp
-clp<- c(1:13966)
-#la pegamos al dataframe precios
-precios<-mutate(precios,clp)
-#pasamos a numerico clp
-precios$clp <-as.numeric(clp)
-#Vamos a convertir a peso chileno. 10 es la columna del país y 15 corresponde a
-#precios en clp
-# datos extraidos  de https://cuex.com/es/clp-pen el 27 de abril de 2022
-for (x in 1:nrow(precios)) {
-  if (precios[x,10] == "Argentina") {
-        precios[x,15]= precios[x,3]*7.35
-  }
-  if (precios[x,10] == "Colombia") {
-        precios[x,15]= precios[x,3]*0.21
-  } 
-  if (precios[x,10] == "España") {
-        precios[x,15]= precios[x,3]*892.47
-  }
-  if (precios[x,10] == "Perú") {
-        precios[x,15]= precios[x,3]*221.21
-  }
-  if (precios[x,10] == "Portugal") {
-        precios[x,15]= precios[x,3]*892.47
-  }
-  if (precios[x,10] == "UK") {
-        precios[x,15]= precios[x,3]*1060.6
-  }
-}
-```
+#pasando a clp
 
-```{r}
+df$precio_ajust<- ifelse(df$pais=='Argentina', df$Precio_Normal*7.35,
+                         ifelse(df$pais=='Colombia', df$Precio_Normal*0.21,
+                                ifelse(df$pais=='España',df$Precio_Normal*829.47,
+                                       ifelse(df$pais=='Perú', df$Precio_Normal*221.21,
+                                              ifelse(df$pais=='Portugal', df$Precio_Normal*829.47,
+                                                     ifelse(df$pais=='UK', df$Precio_Normal*1060.6, df$Precio_Normal))))))
+#hacer una variable que tenga el precio ajustado por el peso_volumen.
+df$precio_equiv<- df$precio_ajust/df$Peso_Volumen
 
+#agregar el GDP de cada pais pasado a pesos chilenos conun valor promedio 2020 observado de dolar de 792.22 (BCC)
+
+df$gdp <- ifelse(df$pais=='Argentina', 514800000*792.22,
+                 ifelse(df$pais=='Colombia', 299800000*792.22,
+                        ifelse(df$pais=='Perú',191000000*792.22 ,
+                               ifelse(df$pais=='Chile',247600000*792.22,
+                                      ifelse(df$pais=='Portugal', 203500000*792.22,
+                                             2891600000*792.22)))))
 
 ```
+categorias distintas 'Café y té' y 'Cafe y te'
+sub categorias 'Té' y 'Te', 'bebidas energéticas' y 'bebidas energizantes', "Aceto" y "Aceto Balsámico"
+Además, en las categorías "Frutas y vegetales" y "Granos, pasta y masas" está la misma subcategoría "Porotos"
+También, el la categoría de snack salados hay papas y papas fritas 
+Por otro lado, en la categoría soda están bebidas y bebidas gaseosas
+También en marca hay 100 pipers y una escrita como 100 pippers, también un Allison y un Allison's, Apóstoles y Apostoles, Ayudín y ayudin, Bacardí y Bacardi, Ballantine's y Ballentines
+barra de ceral y barra de cereal
+```{r arreglando nombres}
+#categorias
+df["categoria"][df["categoria"]== "Café y té"] <- "Cafe y te"
+#subcategorias
+df["subcategoria"][df["subcategoria"]== "Té"] <- "Te"
+df["subcategoria"][df["subcategoria"]== "Bebidas energéticas"] <- "Bebidas energizantes"
+df["subcategoria"][df["subcategoria"]== "Aceto balsámico"] <- "Aceto"
 
+```
 
 ## Desarrollo
 
@@ -148,6 +170,8 @@ Documente acá el desarrollo de su tarea por pregunta.
 
 ```{r P1}
 #Exploración de datos
+df %>%  group_by(pais, categoria) %>% 
+   summarise(mean = mean(precio_equiv))
 ```
 
 #### Pregunta 2
@@ -172,7 +196,6 @@ b. (1.0 puntos) Sobre los dos modelos planteados en la parte anterior, aplique u
 
 ```{r P3}
 #Machine learning models
-
 ```
 
 #### Pregunta 4
