@@ -86,9 +86,9 @@ graphics.off()
 options(digits = 5)   
 
 
-setwd("~/Documents/MKT")
-df <- read_excel("Canasta_de_productos.xlsx")
-
+#setwd("~/Documents/MKT")
+#df <- read_excel("Canasta_de_productos.xlsx")
+df <- read_excel("C:/Users/HP14/Desktop/tarea marketing 2/tarea2marketing/Canasta_de_productos.xlsx")
 
 str(df)
 count(unique(df[c("Sub-categoria")])) #87 subcategorias
@@ -129,7 +129,7 @@ summary(df$pais)
 ```
 ```{r}
 #pasando a clp
-
+# datos extraidos  de https://cuex.com/es/clp-pen el 27 de abril de 2022
 df$precio_ajust<- ifelse(df$pais=='Argentina', df$Precio_Normal*7.35,
                          ifelse(df$pais=='Colombia', df$Precio_Normal*0.21,
                                 ifelse(df$pais=='España',df$Precio_Normal*829.47,
@@ -151,7 +151,7 @@ df$gdp <- ifelse(df$pais=='Argentina', 514800000*792.22,
 data<- df %>%  group_by(pais, subcategoria) %>% 
    summarise(mean = mean(precio_equiv))
 
-previa <- previa[previa$pais=='Chile',]
+previa<- data[data$pais=='Chile',]
 
 frame<- merge(x = data, y = previa, by = c('subcategoria'))
 
