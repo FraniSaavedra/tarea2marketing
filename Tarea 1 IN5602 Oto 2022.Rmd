@@ -79,20 +79,26 @@ library(dplyr) #para manipular dataframe
 library(readxl)
 library(ggplot2)
 library(stargazer)
+library(tidyr)
 
 rm(list=ls())         
 graphics.off()        
 options(digits = 5)   
 
 
-#setwd("~/Documents/MKT")
-#df <- read_excel("Canasta_de_productos.xlsx")
-df <- read_excel("C:/Users/HP14/Desktop/tarea marketing 2/Canasta_de_productos.xlsx")
+setwd("~/Documents/MKT")
+df <- read_excel("Canasta_de_productos.xlsx")
+
 
 str(df)
 count(unique(df[c("Sub-categoria")])) #87 subcategorias
 count(unique(df[c('Marca')]))
 unique(df[c('Categoria')])
+
+#eliminar Na's que puedan generar problemas
+sum(is.na(df$Peso_Volumen)) #habian 12 na 
+df <- df[!is.na(df$Peso_Volumen),]
+
 #summary.data.frame(df)
 #pasar a variables categoricas las columnas
 
@@ -142,6 +148,14 @@ df$gdp <- ifelse(df$pais=='Argentina', 514800000*792.22,
                                       ifelse(df$pais=='Portugal', 203500000*792.22,
                                              2891600000*792.22)))))
 
+data<- df %>%  group_by(pais, subcategoria) %>% 
+   summarise(mean = mean(precio_equiv))
+
+previa <- previa[previa$pais=='Chile',]
+
+frame<- merge(x = data, y = previa, by = c('subcategoria'))
+
+frame$poder <-frame$mean.x/frame$mean.y
 ```
 categorias distintas 'Café y té' y 'Cafe y te'
 sub categorias 'Té' y 'Te', 'bebidas energéticas' y 'bebidas energizantes', "Aceto" y "Aceto Balsámico"
@@ -170,9 +184,32 @@ Documente acá el desarrollo de su tarea por pregunta.
 
 ```{r P1}
 #Exploración de datos
-df %>%  group_by(pais, categoria) %>% 
-   summarise(mean = mean(precio_equiv))
+df$marca <- as.factor(df$marca)
+
+datos <- df %>%
+ group_by(pais,subcategoria) %>%
+ summarise(marca = length(unique(marca))) %>%
+ ungroup() 
+
+
+ggplot(datos, aes(marca)) +
+ geom_bar()
 ```
+
+```{r }
+ggplot(df[df$precio_equiv<4000,], aes(x=pais, y=precio_equiv, color=gdp))+ geom_boxplot()
+```
+se ajusta el gráfico para poder ver mejor las medias de precios de productos de paises y se observa que Chile tiene la media media de precios y concentracion del 50% de precio más caro de todos los paises estudiados, incluso de aquellos con un alto indice de gdp.
+
+```{r poder adquisitivo en comparacion a Chile }
+ggplot(frame[frame$poder<2,], aes(x=pais.x, y=poder))+geom_boxplot()
+```
+Aca observamos que portugal y Uk son los paises mas caros, en promedio, y esto coincide con que sean los paises con mayor gdp, sin embargo chile, no posee un alto gdp y esta al mismo nivel de estos paises. 
+
+```{r}
+
+```
+
 
 #### Pregunta 2
 
