@@ -80,17 +80,15 @@ library(readxl)
 library(ggplot2)
 library(stargazer)
 library(tidyr)
-library(glmnet) #required for lasso and ridge regression
 
 rm(list=ls())         
 graphics.off()        
 options(digits = 5)   
 
 
-#setwd("~/Documents/MKT")
-#df <- read_excel("Canasta_de_productos.xlsx")
-#df <- read_excel("C:/Users/HP14/Desktop/tarea marketing 2/tarea2marketing/Canasta_de_productos.xlsx")
-df <- read_excel("C:/Users/Nico/Desktop/U/Marketing II/Tareas/Canasta_de_productos.xlsx")
+setwd("~/Documents/MKT")
+df <- read_excel("Canasta_de_productos.xlsx")
+
 
 str(df)
 count(unique(df[c("Sub-categoria")])) #87 subcategorias
@@ -130,8 +128,8 @@ names(df)[names(df) == 'Marca_propia'] <- 'marcapropia'
 summary(df$pais)
 ```
 ```{r}
-#pasando precio_norm a clp
-# datos extraidos  de https://cuex.com/es/clp-pen el 27 de abril de 2022
+#pasando a clp
+
 df$precio_ajust<- ifelse(df$pais=='Argentina', df$Precio_Normal*7.35,
                          ifelse(df$pais=='Colombia', df$Precio_Normal*0.21,
                                 ifelse(df$pais=='España',df$Precio_Normal*829.47,
@@ -141,47 +139,16 @@ df$precio_ajust<- ifelse(df$pais=='Argentina', df$Precio_Normal*7.35,
 #hacer una variable que tenga el precio ajustado por el peso_volumen.
 df$precio_equiv<- df$precio_ajust/df$Peso_Volumen
 
-#agregar el GDP de cada pais pasado a pesos chilenos con un valor promedio 2020 observado de dolar de 792.22 (BCC)
+#agregar el GDP de cada pais pasado a pesos chilenos conun valor promedio 2020 observado de dolar de 792.22 (BCC)
 
-df$gdp <- ifelse(df$pais=='Argentina', 514800000*792.22,
-                 ifelse(df$pais=='Colombia', 299800000*792.22,
-                        ifelse(df$pais=='Perú',191000000*792.22 ,
-                               ifelse(df$pais=='Chile',247600000*792.22,
-                                      ifelse(df$pais=='Portugal', 203500000*792.22,
-                                             ifelse(df$pais=='España', 1180700000*792.22,
-                                             2891600000*792.22))))))
+#gdp en billones
+df$gdp <- ifelse(df$pais=='Argentina', 514.8*792.22,
+                 ifelse(df$pais=='Colombia', 299.8*792.22,
+                        ifelse(df$pais=='Perú',191*792.22 ,
+                               ifelse(df$pais=='Chile',247.6*792.22,
+                                      ifelse(df$pais=='Portugal', 203.5*792.22,
+                                             2891.6*792.22)))))
 
-#Agregar sueldo minimo del 2021 en pesos chilenos a cada país 
-
-df$sueldo_min <- ifelse(df$pais=='Argentina', 201321,
-                 ifelse(df$pais=='Colombia', 194027,
-                        ifelse(df$pais=='Perú', 206416 ,
-                               ifelse(df$pais=='Chile',337000,
-                                      ifelse(df$pais=='Portugal', 697383,
-                                             ifelse(df$pais=='España', 854857,
-                                             1536943))))))
-
-data<- df %>%  group_by(pais, subcategoria,sueldo_min) %>% 
-   summarise(mean = mean(precio_equiv))
-
-#Agregar coste de vida del 2017 a cada país 
-
-df$coste_vida <- ifelse(df$pais=='Argentina', 93.54,
-                 ifelse(df$pais=='Colombia', 68.94,
-                        ifelse(df$pais=='Perú', 83.26 ,
-                               ifelse(df$pais=='Chile',105.82,
-                                      ifelse(df$pais=='Portugal', 106.46,
-                                             ifelse(df$pais=='España', 113.82,
-                                             144.03))))))
-
-data<- df %>%  group_by(pais, subcategoria,sueldo_min,coste_vida) %>% 
-   summarise(mean = mean(precio_equiv))
-
-previa<- data[data$pais=='Chile',]
-
-frame<- merge(x = data, y = previa, by = c('subcategoria'))
-
-frame$poder <-frame$mean.x/frame$mean.y
 ```
 categorias distintas 'Café y té' y 'Cafe y te'
 sub categorias 'Té' y 'Te', 'bebidas energéticas' y 'bebidas energizantes', "Aceto" y "Aceto Balsámico"
@@ -213,30 +180,94 @@ Documente acá el desarrollo de su tarea por pregunta.
 df$marca <- as.factor(df$marca)
 
 datos <- df %>%
- group_by(pais,subcategoria) %>%
+ group_by(pais, categoria) %>%
  summarise(marca = length(unique(marca))) %>%
  ungroup() 
 
+datos <- datos %>% 
+  group_by(pais) %>% 
+  summarise(promedio_marcas = mean(marca)) %>% 
+  ungroup()
 
-ggplot(datos, aes(marca)) +
- geom_bar()
+print(datos)
 ```
 
 ```{r }
 ggplot(df[df$precio_equiv<4000,], aes(x=pais, y=precio_equiv, color=gdp))+ geom_boxplot()
 ```
-Se ajusta el gráfico para poder ver mejor las medias de precios de productos de paises y se observa que Chile tiene la media de precios y concentracion del 50% de precio más caro de todos los paises estudiados, incluso de aquellos con un alto indice de gdp.
- 
+se ajusta el gráfico para poder ver mejor las medias de precios de productos de paises y se observa que Chile tiene la media media de precios y concentracion del 50% de precio más caro de todos los paises estudiados, incluso de aquellos con un alto indice de gdp.
 
 ```{r poder adquisitivo en comparacion a Chile }
-ggplot(frame[frame$poder<2,], aes(x=pais.x, y=poder, color=sueldo_min.x))+geom_boxplot()
+data<- df %>%  group_by(pais, subcategoria) %>% 
+   summarise(mean = mean(precio_equiv))
+
+meanChile <- data[data$pais=='Chile',]
+
+frame<- merge(x = data, y = meanChile, by = c('subcategoria'))
+
+frame$poder <-frame$mean.x/frame$mean.y
+frame$pais.y <- NULL
+
+ggplot(frame[frame$poder<2,], aes(x=pais.x, y=poder))+geom_boxplot()
 ```
-Al corregir los precios por paridad de poder adquisitivo, observamos que Portugal y UK son los paises más caros, en promedio, y esto coincide con que sean los paises con mayor GDP. Por otro lado, Chile, no posee un alto GDP y está al mismo nivel de estos paises. Destaca España que tiene alto sueldo minimo (más del doble que Chile) y menores costes promido que Chile 
+Aca observamos que portugal y Uk son los paises mas caros, en promedio, y esto coincide con que sean los paises con mayor gdp, sin embargo chile, no posee un alto gdp y esta al mismo nivel de estos paises. 
 
 ```{r}
-ggplot(frame[frame$coste_vida.x<150,], aes(x=pais.x, y=coste_vida.x, color=sueldo_min.x))+geom_boxplot()
-```
+df$Salario <- ifelse(df$pais=='Chile', 337000, 
+                     ifelse(df$pais=='Portugal', 697383,
+                            ifelse(df$pais=='España',854857,
+                                   ifelse(df$pais=='UK', 15369343,
+                                          ifelse(df$pais=='Argentina', 201321,
+                                                 ifelse(df$pais=='Colombia', 194027, 
+                                                        206416))))))
 
+salario <- df %>%  group_by(pais, Salario) %>% 
+  summarise(promedio= mean(precio_equiv)) %>% 
+  ungroup() 
+salario <- salario[order(salario$Salario, salario$promedio), ]
+
+
+print(salario)
+
+```
+```{r comparacion de precios para marca propia}
+#si hay tiempo mejorar, repetir para otras 3 categorias.
+
+mp <- df %>% group_by(subcategoria, pais, marcapropia ) 
+marcapropia <- as.numeric(mp$marcapropia)
+
+chile <- mp[mp$pais=='Chile',]
+argentina <- mp[mp$pais=='Argentina',]
+colombia <- mp[mp$pais=='Colombia',]
+peru <- mp[mp$pais=='Perú',]
+portugal <- mp[mp$pais == 'Portugal',]
+uk <- mp[mp$pais=='UK',]
+espana <- mp[mp$pais=='España',]
+
+
+cl <- ggplot(chile[chile$categoria=='Azúcar, sal y sucedáneos' & chile$precio_equiv<15000,], aes(x=factor(marcapropia), y=precio_equiv))+ geom_boxplot()
+
+ar <- ggplot(argentina[argentina$categoria=='Azúcar, sal y sucedáneos' & argentina$precio_equiv<7500,], aes(x=factor(marcapropia), y=precio_equiv))+ geom_boxplot()
+
+col <- ggplot(colombia[colombia$categoria=='Azúcar, sal y sucedáneos' & colombia$precio_equiv<2500,], aes(x=factor(marcapropia), y=precio_equiv))+ geom_boxplot()
+
+pe <- ggplot(peru[peru$categoria=='Azúcar, sal y sucedáneos' & peru$precio_equiv<1500,], aes(x=factor(marcapropia), y=precio_equiv))+ geom_boxplot()
+
+por <- ggplot(portugal[portugal$categoria=='Azúcar, sal y sucedáneos' & portugal$precio_equiv<15000,], aes(x=factor(marcapropia), y=precio_equiv))+ geom_boxplot()
+
+ru <- uk <- ggplot(uk[uk$categoria=='Azúcar, sal y sucedáneos' & uk$precio_equiv<5000,], aes(x=factor(marcapropia), y=precio_equiv))+ geom_boxplot()
+
+esp <- ggplot(espana[espana$categoria=='Azúcar, sal y sucedáneos' & espana$precio_equiv<5000,], aes(x=factor(marcapropia), y=precio_equiv))+ geom_boxplot()
+
+print(cl)
+print(pe)
+print(ar)
+print(esp)
+print(ru)
+print(por)
+print(col)
+```
+se observa que con todos los ppaises aquellas categorias con productos de marca propia tienen una media de precio equivalente menor en comparacion a los productos de marcas externas
 
 #### Pregunta 2
 
@@ -246,6 +277,12 @@ a. (1.0 puntos) Proponga al menos dos especificaciones alternativas para el obje
 
 ```{r P2_a}
 #lm models
+
+reg1 <- lm(precio_ajust~ marcapropia + gdp + Peso_Volumen + , df)
+summary(reg1)
+
+reg2 <- lm(precio_equiv~marcapropia + gdp + Salario, df)
+summary(reg2)
 
 ```
 
