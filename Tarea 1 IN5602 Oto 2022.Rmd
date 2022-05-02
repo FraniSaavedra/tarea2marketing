@@ -89,7 +89,8 @@ options(digits = 5)
 
 #setwd("~/Documents/MKT")
 #df <- read_excel("Canasta_de_productos.xlsx")
-df <- read_excel("C:/Users/HP14/Desktop/tarea marketing 2/tarea2marketing/Canasta_de_productos.xlsx")
+#df <- read_excel("C:/Users/HP14/Desktop/tarea marketing 2/tarea2marketing/Canasta_de_productos.xlsx")
+df <- read_excel("C:/Users/Nico/Desktop/U/Marketing II/Tareas/Canasta_de_productos.xlsx")
 
 str(df)
 count(unique(df[c("Sub-categoria")])) #87 subcategorias
@@ -163,6 +164,19 @@ df$sueldo_min <- ifelse(df$pais=='Argentina', 201321,
 data<- df %>%  group_by(pais, subcategoria,sueldo_min) %>% 
    summarise(mean = mean(precio_equiv))
 
+#Agregar coste de vida del 2017 a cada país 
+
+df$coste_vida <- ifelse(df$pais=='Argentina', 93.54,
+                 ifelse(df$pais=='Colombia', 68.94,
+                        ifelse(df$pais=='Perú', 83.26 ,
+                               ifelse(df$pais=='Chile',105.82,
+                                      ifelse(df$pais=='Portugal', 106.46,
+                                             ifelse(df$pais=='España', 113.82,
+                                             144.03))))))
+
+data<- df %>%  group_by(pais, subcategoria,sueldo_min,coste_vida) %>% 
+   summarise(mean = mean(precio_equiv))
+
 previa<- data[data$pais=='Chile',]
 
 frame<- merge(x = data, y = previa, by = c('subcategoria'))
@@ -220,7 +234,7 @@ ggplot(frame[frame$poder<2,], aes(x=pais.x, y=poder, color=sueldo_min.x))+geom_b
 Al corregir los precios por paridad de poder adquisitivo, observamos que Portugal y UK son los paises más caros, en promedio, y esto coincide con que sean los paises con mayor GDP. Por otro lado, Chile, no posee un alto GDP y está al mismo nivel de estos paises. Destaca España que tiene alto sueldo minimo (más del doble que Chile) y menores costes promido que Chile 
 
 ```{r}
-
+ggplot(frame[frame$coste_vida.x<150,], aes(x=pais.x, y=coste_vida.x, color=sueldo_min.x))+geom_boxplot()
 ```
 
 
